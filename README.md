@@ -1,2 +1,0 @@
-# oTxTo
-tiny txt editor
