@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oTxTo</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #171717;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .toolbar {
+            background-color: #171717;
+            padding: 1px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1;
+            max-height: 20px;
+            border-bottom: 1px solid #232323;
+            user-select: none;
+            cursor: default;
+        }
+        .toolbar .toolbar-item {
+            display: inline-block;
+            margin-right: 0px;
+            margin-left: 1px;
+            position: relative;
+        }
+        .toolbar .toolbar-item a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 10pt;
+            padding: 0 8px;
+            display: block;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+        .toolbar .toolbar-item a:hover {
+            background-color: #ffffff17;
+        }
+        .toolbar .toolbar-item a:focus {
+            background-color: #ffffff17;
+        }
+        .toolbar .context-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 1px);
+            left: 0;
+            background-color: #272727;
+            padding: 0;
+            border-radius: 4px;
+            z-index: 2;
+        }
+        .toolbar .context-menu li {
+            display: block;
+            margin: 0;
+        }
+        .toolbar .context-menu li a {
+            padding: 2px 8px;
+            min-width: 96px;
+            display: block;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .toolbar .context-menu li a:hover {
+            background-color: #ffffff17;
+        }
+        .context-menu {
+            top: 1px!important;
+            user-select: none;
+            border: 1px solid #323232;
+        }
+        .sub-bar {
+            background-color: #131313;
+            color: #ffffff40;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-height: 20px;
+            padding: 2px 10px;
+            box-sizing: border-box;
+            font-size: 10pt;
+            border-top: 1px solid #232323;
+            user-select: none; /* Disable text selection */
+        }
+        .sub-bar span {
+            user-select: none; /* Allow text selection within spans */
+            cursor: default; /* Set default cursor for spans */
+        }
+        .disabled {
+        	color: #ffffff80!important;
+            background: transparent!important;
+        }
+        .editor {
+            width: 100%;
+            height: calc(100vh - 40px);
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 10pt;
+            background-color: #070707;
+            color: #fff;
+            border: none;
+            outline: none;
+            resize: none;
+            margin-top: 20px;
+        }
+        hr {
+        	border: 1px solid #323232;
+            margin: 4px 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div class="toolbar-item">
+            <a href="#">File</a>
+            <ul class="context-menu file-menu">
+                <li><a href="#" id="newButton">New</a></li>
+                <li><a href="#" id="openButton">Open</a></li>
+                <hr>
+                <li><a href="#" id="saveButton">Save</a></li>
+                <li><a href="#" id="renameButton" class="disabled">Rename</a></li>
+                <li><a href="#" id="duplicateButton" class="disabled">Duplicate</a></li>
+                <li><a href="#" id="closeFileButton" class="disabled">Close</a></li>
+                <hr>
+                <li><a href="#" id="infoButton" class="disabled">Info</a></li>
+                <hr>
+                <li><a href="#" id="printButton" class="disabled">Print</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Edit</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="undoButton">Undo</a></li>
+                <li><a href="#" id="redoButton">Redo</a></li>
+                <hr>
+                <li><a href="#" id="cutButton" class="disabled" title="Ctrl + X or Cmd + X">Cut</a></li>
+                <li><a href="#" id="copyButton" class="disabled">Copy</a></li>
+                <li><a href="#" id="pasteButton" class="disabled">Paste</a></li>
+                <li><a href="#" id="selectAllButton">Select All</a></li>
+                <hr>
+                <li><a href="#" id="findButton" class="disabled">Find</a></li>
+                <li><a href="#" id="replaceButton" class="disabled">Replace</a></li>
+                <li><a href="#" id="spellcheckButton" class="disabled">Spellcheck</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Format</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="fontsButton" class="disabled">Fonts</a></li>
+                <li><a href="#" id="textOptionsButton" class="disabled">Text Options</a></li>
+                <hr>
+                <li><a href="#" id="structureButton" class="disabled">Structure</a></li>
+                
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">View</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="zoomInButton" class="disabled">Zoom In</a></li>
+                <li><a href="#" id="zoomOutButton" class="disabled">Zoom Out</a></li>
+                <hr>
+                <li><a href="#" id="fullscreenButton" class="disabled">Fullscreen</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Help</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="helpButton" class="disabled">Help</a></li>
+                <hr>
+                <li><a href="#" id="aboutButton" class="disabled">About</a></li>
+            </ul>
+        </div>
+        <!-- Toolbar -->
+    </div>
+    <textarea id="editor" class="editor" spellcheck="false"></textarea>
+    <div class="sub-bar" id="subBar">
+        <span id="charCount">CHAR: 0</span>
+        <span id="wordCount">| WORD: 0</span>
+        <span id="paragraphCount">| PARA: 0</span>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toolbarItems = document.querySelectorAll('.toolbar .toolbar-item');
+
+            toolbarItems.forEach(function(item) {
+                const menuItem = item.querySelector('a');
+                const contextMenu = item.querySelector('.context-menu');
+
+                menuItem.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const isDisplayed = getComputedStyle(contextMenu).display === 'block';
+                    closeAllContextMenus();
+                    contextMenu.style.display = isDisplayed ? 'none' : 'block';
+                });
+
+                contextMenu.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
+
+            document.addEventListener('click', function() {
+                closeAllContextMenus();
+            });
+
+            function closeAllContextMenus() {
+                const contextMenus = document.querySelectorAll('.toolbar .context-menu');
+                contextMenus.forEach(function(menu) {
+                    menu.style.display = 'none';
+                });
+            }
+
+            const editor = document.getElementById("editor");
+            const subBar = document.getElementById("subBar");
+
+            const newButton = document.getElementById("newButton");
+            const openButton = document.getElementById("openButton");
+            const saveButton = document.getElementById("saveButton");
+
+            newButton.addEventListener("click", function() {
+                editor.value = "";
+            });
+
+            openButton.addEventListener("click", function() {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".txt";
+                input.onchange = function(event) {
+                    const file = event.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        editor.value = reader.result;
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+
+            saveButton.addEventListener("click", function() {
+                const content = editor.value;
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "document.txt";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            const undoButton = document.getElementById("undoButton");
+            const redoButton = document.getElementById("redoButton");
+            const cutButton = document.getElementById("cutButton");
+            const copyButton = document.getElementById("copyButton");
+            const pasteButton = document.getElementById("pasteButton");
+            const selectAllButton = document.getElementById("selectAllButton");
+
+            let editorHistory = [];
+            let currentPosition = -1;
+            let isUndoingOrRedoing = false;
+
+            undoButton.addEventListener("click", function() {
+                if (currentPosition > 0) {
+                    isUndoingOrRedoing = true;
+                    currentPosition--;
+                    restoreEditorState(editorHistory[currentPosition]);
+                    isUndoingOrRedoing = false;
+                }
+            });
+
+            redoButton.addEventListener("click", function() {
+                if (currentPosition < editorHistory.length - 1) {
+                    isUndoingOrRedoing = true;
+                    currentPosition++;
+                    restoreEditorState(editorHistory[currentPosition]);
+                    isUndoingOrRedoing = false;
+                }
+            });
+
+            cutButton.addEventListener("click", function() {
+                document.execCommand("cut");
+            });
+
+            copyButton.addEventListener("click", function() {
+                document.execCommand("copy");
+            });
+
+            pasteButton.addEventListener("click", function() {
+                document.execCommand("paste");
+            });
+
+            selectAllButton.addEventListener("click", function() {
+                const editor = document.getElementById("editor");
+                editor.focus();
+                editor.select();
+            });
+
+            editor.addEventListener("input", function() {
+                const text = this.value;
+                const charCount = text.length;
+                const wordCount = (charCount === 0) ? 0 : text.trim().split(/\s+/).length;
+                const paragraphCount = (charCount === 0) ? 0 : (text.match(/\n\n/g) || []).length + 1;
+                subBar.innerHTML = "CHAR: " + charCount + " | WORD: " + wordCount + " | PARA: " + paragraphCount;
+
+                if (!isUndoingOrRedoing) {
+                    editorHistory = editorHistory.slice(0, currentPosition + 1);
+                    editorHistory.push(getEditorState());
+                    currentPosition = editorHistory.length - 1;
+                }
+            });
+
+            function restoreEditorState(state) {
+                editor.value = state.text;
+                editor.setSelectionRange(state.selectionStart, state.selectionEnd);
+                editor.scrollTop = state.scrollTop;
+            }
+
+            function getEditorState() {
+                return {
+                    text: editor.value,
+                    selectionStart: editor.selectionStart,
+                    selectionEnd: editor.selectionEnd,
+                    scrollTop: editor.scrollTop
+                };
+            }
+        });
+    </script>
+</body>
+</html>
