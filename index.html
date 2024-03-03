@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Courier New', Courier, monospace;
-            background-color: #171717;
+            background-color: #000;
             color: #fff;
             margin: 0;
             padding: 0;
@@ -37,6 +37,7 @@
             padding: 0 8px;
             display: block;
             border-radius: 4px;
+            cursor: default;
             transition: all 0.2s ease;
         }
         .toolbar .toolbar-item a:hover {
@@ -65,7 +66,7 @@
             display: block;
             color: #fff;
             text-decoration: none;
-            transition: all 0.2s ease;
+
         }
         .toolbar .context-menu li a:hover {
             background-color: #ffffff17;
@@ -86,15 +87,16 @@
             box-sizing: border-box;
             font-size: 10pt;
             border-top: 1px solid #232323;
-            user-select: none; /* Disable text selection */
+            user-select: none;
         }
         .sub-bar span {
-            user-select: none; /* Allow text selection within spans */
-            cursor: default; /* Set default cursor for spans */
+            user-select: none;
+            cursor: default;
         }
         .disabled {
         	color: #ffffff80!important;
             background: transparent!important;
+            pointer-events: none;
         }
         .editor {
             width: 100%;
@@ -108,15 +110,20 @@
             outline: none;
             resize: none;
             margin-top: 20px;
+            font-family: 'Courier New', Courier, monospace;
         }
         hr {
         	border: 1px solid #323232;
             margin: 4px 6px;
         }
+        .specialnew:hover {
+        	background: #7a79ff33!important;
+            color: #000;
+        }
     </style>
 </head>
 <body>
-    <div class="toolbar">
+    <div class="toolbar" oncontextmenu="return false;">
         <div class="toolbar-item">
             <a href="#">File</a>
             <ul class="context-menu file-menu">
@@ -124,7 +131,7 @@
                 <li><a href="#" id="openButton">Open</a></li>
                 <hr>
                 <li><a href="#" id="saveButton">Save</a></li>
-                <li><a href="#" id="renameButton" class="disabled">Rename</a></li>
+                <li><a href="#" id="renameButton">Rename</a></li>
                 <li><a href="#" id="duplicateButton" class="disabled">Duplicate</a></li>
                 <li><a href="#" id="closeFileButton" class="disabled">Close</a></li>
                 <hr>
@@ -139,37 +146,50 @@
                 <li><a href="#" id="undoButton">Undo</a></li>
                 <li><a href="#" id="redoButton">Redo</a></li>
                 <hr>
-                <li><a href="#" id="cutButton" class="disabled" title="Ctrl + X or Cmd + X">Cut</a></li>
+                <li><a href="#" id="cutButton" class="disabled" title="CTRL + X or CMD + X">Cut</a></li>
                 <li><a href="#" id="copyButton" class="disabled">Copy</a></li>
                 <li><a href="#" id="pasteButton" class="disabled">Paste</a></li>
                 <li><a href="#" id="selectAllButton">Select All</a></li>
                 <hr>
                 <li><a href="#" id="findButton" class="disabled">Find</a></li>
                 <li><a href="#" id="replaceButton" class="disabled">Replace</a></li>
+                <hr>
+                <li><a href="#" id="speechButton" class="disabled">Speech</a></li>
+                <li><a href="#" id="dictationButton" class="disabled">Dictation</a></li>
+                <hr>
+                <li><a href="#" id="translateButton" class="disabled">Translate</a></li>
                 <li><a href="#" id="spellcheckButton" class="disabled">Spellcheck</a></li>
+                <hr>
+                <li><a href="#" id="aiPartnerButton" class="specialnew disabled">Partner*</a></li>
+                <hr>
+                <li><a href="#" id="emojiSymbolButton" class="disabled">Emoji/Symbols</a></li>
             </ul>
         </div>
         <div class="toolbar-item">
-            <a href="#">Format</a>
+            <a href="#" class="disabled">Format</a>
             <ul class="context-menu edit-menu">
                 <li><a href="#" id="fontsButton" class="disabled">Fonts</a></li>
-                <li><a href="#" id="textOptionsButton" class="disabled">Text Options</a></li>
+                <li><a href="#" id="textButton" class="disabled">Text</a></li>
                 <hr>
                 <li><a href="#" id="structureButton" class="disabled">Structure</a></li>
                 
             </ul>
         </div>
         <div class="toolbar-item">
-            <a href="#">View</a>
+            <a href="#" class="disabled">View</a>
             <ul class="context-menu edit-menu">
-                <li><a href="#" id="zoomInButton" class="disabled">Zoom In</a></li>
-                <li><a href="#" id="zoomOutButton" class="disabled">Zoom Out</a></li>
+                <li><a href="#" id="zoomInButton" class="disabled">+ Zoom In</a></li>
+                <li><a href="#" id="zoomOutButton" class="disabled">- Zoom Out</a></li>
                 <hr>
                 <li><a href="#" id="fullscreenButton" class="disabled">Fullscreen</a></li>
+                <hr>
+                <li><a href="#" id="previewButton" class="disabled">Preview</a></li>
+                <hr>
+                <li><a href="#" id="preferencesButton" class="disabled">Preferences</a></li>
             </ul>
         </div>
         <div class="toolbar-item">
-            <a href="#">Help</a>
+            <a href="#" class="disabled">Help</a>
             <ul class="context-menu edit-menu">
                 <li><a href="#" id="helpButton" class="disabled">Help</a></li>
                 <hr>
@@ -179,7 +199,7 @@
         <!-- Toolbar -->
     </div>
     <textarea id="editor" class="editor" spellcheck="false"></textarea>
-    <div class="sub-bar" id="subBar">
+    <div class="sub-bar" id="subBar" oncontextmenu="return false;">
         <span id="charCount">CHAR: 0</span>
         <span id="wordCount">| WORD: 0</span>
         <span id="paragraphCount">| PARA: 0</span>
@@ -309,6 +329,7 @@
                 const paragraphCount = (charCount === 0) ? 0 : (text.match(/\n\n/g) || []).length + 1;
                 subBar.innerHTML = "CHAR: " + charCount + " | WORD: " + wordCount + " | PARA: " + paragraphCount;
 
+                // Add current content to history
                 if (!isUndoingOrRedoing) {
                     editorHistory = editorHistory.slice(0, currentPosition + 1);
                     editorHistory.push(getEditorState());
