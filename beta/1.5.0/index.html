@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oTxTo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/hybrid.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .toolbar {
+            background-color: #171717;
+            padding: 1px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1;
+            max-height: 20px;
+            border-bottom: 1px solid #232323;
+            user-select: none;
+            cursor: default;
+        }
+        .toolbar .toolbar-item {
+            display: inline-block;
+            margin-right: 0px;
+            margin-left: 1px;
+            position: relative;
+        }
+        .toolbar .toolbar-item a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 10pt;
+            padding: 0 8px;
+            display: block;
+            border-radius: 4px;
+            cursor: default;
+            transition: all 0.2s ease;
+        }
+        .toolbar .toolbar-item a:hover {
+            background-color: #ffffff17;
+        }
+        .toolbar .toolbar-item a:focus {
+            background-color: #ffffff17;
+        }
+        .toolbar .context-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 1px);
+            left: 0;
+            background-color: #272727;
+            padding: 0;
+            border-radius: 4px;
+            z-index: 2;
+        }
+        .toolbar .context-menu li {
+            display: block;
+            margin: 0;
+        }
+        .toolbar .context-menu li a {
+            padding: 2px 8px;
+            min-width: 96px;
+            display: block;
+            color: #fff;
+            text-decoration: none;
+
+        }
+        .toolbar .context-menu li a:hover {
+            background-color: #ffffff17;
+        }
+        .context-menu {
+            top: 1px!important;
+            user-select: none;
+            border: 1px solid #323232;
+        }
+        .sub-bar {
+            background-color: #131313;
+            color: #ffffff40;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-height: 20px;
+            padding: 2px 10px;
+            box-sizing: border-box;
+            font-size: 10pt;
+            border-top: 1px solid #232323;
+            user-select: none;
+        }
+        .sub-bar span {
+            user-select: none;
+            cursor: default;
+        }
+        .disabled {
+        	color: #ffffff80!important;
+            background: transparent!important;
+            pointer-events: none;
+        }
+        .editor {
+            width: 100%;
+            height: calc(100vh - 40px);
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 10pt;
+            background-color: #070707;
+            color: #fff;
+            border: none;
+            outline: none;
+            resize: none;
+            margin-top: 20px;
+            margin-bottom: 0px;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: auto;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            
+        }
+        hr {
+        	border: 1px solid #323232;
+            margin: 4px 6px;
+        }
+        .specialnew:hover {
+        	background: #7a79ff33!important;
+            color: #000;
+        }
+        /* Modal for Syntax Selection */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #232323;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #323232;
+            width: 50%;
+            border-radius: 6px;
+        }
+
+        .close-modal {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-modal:hover,
+        .close-modal:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    </style>
+    
+</head>
+<body>
+    <div class="toolbar" oncontextmenu="return false;">
+        <div class="toolbar-item">
+            <a href="#">File</a>
+            <ul class="context-menu file-menu">
+                <li><a href="#" id="newButton">New</a></li>
+                <li><a href="#" id="openButton">Open</a></li>
+                <hr>
+                <li><a href="#" id="saveButton">Save</a></li>
+                <li><a href="#" id="renameButton">Rename</a></li>
+                <li><a href="#" id="duplicateButton" class="disabled">Duplicate</a></li>
+                <li><a href="#" id="closeFileButton" class="disabled">Close</a></li>
+                <hr>
+                <li><a href="#" id="infoButton" class="disabled">Info</a></li>
+                <hr>
+                <li><a href="#" id="printButton" class="disabled">Print</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Edit</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="undoButton">Undo</a></li>
+                <li><a href="#" id="redoButton">Redo</a></li>
+                <hr>
+                <li><a href="#" id="cutButton" class="disabled" title="CTRL + X or CMD + X">Cut</a></li>
+                <li><a href="#" id="copyButton">Copy</a></li>
+                <li><a href="#" id="pasteButton">Paste</a></li>
+                <li><a href="#" id="selectAllButton">Select All</a></li>
+                <hr>
+                <li><a href="#" id="findButton" class="disabled">Find</a></li>
+                <li><a href="#" id="replaceButton" class="disabled">Replace</a></li>
+                <hr>
+                <li><a href="#" id="speechButton" class="disabled">Speech</a></li>
+                <li><a href="#" id="dictationButton" class="disabled">Dictation</a></li>
+                <hr>
+                <li><a href="#" id="translateButton" class="disabled">Translate</a></li>
+                <li><a href="#" id="spellcheckButton" class="disabled">Spellcheck</a></li>
+                <hr>
+                <li><a href="#" id="aiPartnerButton" class="specialnew disabled">Partner*</a></li>
+                <hr>
+                <li><a href="#" id="emojiSymbolButton" class="disabled">Emoji/Symbols</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Format</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="fontsButton" class="disabled">Fonts</a></li>
+                <li><a href="#" id="textButton" class="disabled">Text</a></li>
+                <hr>
+                <li><a href="#" id="structureButton" class="disabled">Structure</a></li>
+                <li><a href="#" id="syntaxButton">Syntax</a></li>
+                
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">View</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="zoomInButton" class="disabled">+ Zoom In</a></li>
+                <li><a href="#" id="zoomOutButton" class="disabled">- Zoom Out</a></li>
+                <hr>
+                <li><a href="#" id="fullscreenButton" class="disabled">Fullscreen</a></li>
+                <hr>
+                <li><a href="#" id="previewButton" class="disabled">Preview</a></li>
+                <hr>
+                <li><a href="#" id="preferencesButton" class="disabled">Preferences</a></li>
+            </ul>
+        </div>
+        <div class="toolbar-item">
+            <a href="#">Help</a>
+            <ul class="context-menu edit-menu">
+                <li><a href="#" id="helpButton" class="disabled">Help</a></li>
+                <hr>
+                <li><a href="#" id="aboutButton" class="disabled">About</a></li>
+            </ul>
+        </div>
+        <!-- Toolbar -->
+    </div>
+    <pre><div id="editor" class="editor" spellcheck="false" contenteditable="true">oTxTo</div></pre>
+    <!-- Modal for Syntax Selection -->
+    <div id="syntaxModal" class="modal">
+      <div class="modal-content">
+        <h2>Select Syntax</h2>
+        <select id="syntaxSelector">
+          <option value="txt">Plain Text</option>
+          <option value="javascript">JavaScript</option>
+          <option value="html">HTML</option>
+          <!-- more options coming soon -->
+        </select>
+        <button id="applySyntaxButton">Apply</button>
+      </div>
+    </div>
+    <!-- Sub -->
+    <div class="sub-bar" id="subBar" oncontextmenu="return false;">
+        <span id="charCount">CHAR: 0</span>
+        <span id="wordCount">| WORD: 0</span>
+        <span id="paragraphCount">| PARA: 0</span>
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toolbarItems = document.querySelectorAll('.toolbar .toolbar-item');
+
+            toolbarItems.forEach(function(item) {
+                const menuItem = item.querySelector('a');
+                const contextMenu = item.querySelector('.context-menu');
+
+                menuItem.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const isDisplayed = getComputedStyle(contextMenu).display === 'block';
+                    closeAllContextMenus();
+                    contextMenu.style.display = isDisplayed ? 'none' : 'block';
+                });
+
+                contextMenu.addEventListener('click', function(event) {
+                    event.stopPropagation();
+                });
+            });
+
+            document.addEventListener('click', function() {
+                closeAllContextMenus();
+            });
+
+            function closeAllContextMenus() {
+                const contextMenus = document.querySelectorAll('.toolbar .context-menu');
+                contextMenus.forEach(function(menu) {
+                    menu.style.display = 'none';
+                });
+            }
+
+            const editor = document.getElementById("editor");
+            const subBar = document.getElementById("subBar");
+
+            const newButton = document.getElementById("newButton");
+            const openButton = document.getElementById("openButton");
+            const saveButton = document.getElementById("saveButton");
+
+            newButton.addEventListener("click", function() {
+                editor.value = "";
+            });
+
+            openButton.addEventListener("click", function() {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".txt";
+                input.onchange = function(event) {
+                    const file = event.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        editor.value = reader.result;
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            });
+
+            saveButton.addEventListener("click", function() {
+                const content = editor.value;
+                const blob = new Blob([content], { type: "text/plain" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "document.txt";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            const undoButton = document.getElementById("undoButton");
+            const redoButton = document.getElementById("redoButton");
+            const cutButton = document.getElementById("cutButton");
+            const copyButton = document.getElementById("copyButton");
+            const pasteButton = document.getElementById("pasteButton");
+            const selectAllButton = document.getElementById("selectAllButton");
+
+            let editorHistory = [];
+            let currentPosition = -1;
+            let isUndoingOrRedoing = false;
+
+            undoButton.addEventListener("click", function() {
+                if (currentPosition > 0) {
+                    isUndoingOrRedoing = true;
+                    currentPosition--;
+                    restoreEditorState(editorHistory[currentPosition]);
+                    isUndoingOrRedoing = false;
+                }
+            });
+
+            redoButton.addEventListener("click", function() {
+                if (currentPosition < editorHistory.length - 1) {
+                    isUndoingOrRedoing = true;
+                    currentPosition++;
+                    restoreEditorState(editorHistory[currentPosition]);
+                    isUndoingOrRedoing = false;
+                }
+            });
+
+            cutButton.addEventListener("click", function() {
+                document.execCommand("cut");
+            });
+
+            copyButton.addEventListener("click", function() {
+                document.execCommand("copy");
+            });
+
+            pasteButton.addEventListener("click", function() {
+                document.execCommand("paste");
+            });
+
+            selectAllButton.addEventListener("click", function() {
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(editor);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            });
+            
+                hljs.highlightBlock(editor);
+
+
+            editor.addEventListener("input", function() {
+                const text = this.value;
+                const charCount = text.length;
+                const wordCount = (charCount === 0) ? 0 : text.trim().split(/\s+/).length;
+                const paragraphCount = (charCount === 0) ? 0 : (text.match(/\n\n/g) || []).length + 1;
+                subBar.innerHTML = "CHAR: " + charCount + " | WORD: " + wordCount + " | PARA: " + paragraphCount;
+
+                // Apply syntax highlighting
+    hljs.highlightBlock(editor);
+                // Add current content to history
+                if (!isUndoingOrRedoing) {
+                    editorHistory = editorHistory.slice(0, currentPosition + 1);
+                    editorHistory.push(getEditorState());
+                    currentPosition = editorHistory.length - 1;
+                }
+                
+                
+            });
+
+            function restoreEditorState(state) {
+                editor.value = state.text;
+                editor.setSelectionRange(state.selectionStart, state.selectionEnd);
+                editor.scrollTop = state.scrollTop;
+            }
+
+            function getEditorState() {
+                return {
+                    text: editor.value,
+                    selectionStart: editor.selectionStart,
+                    selectionEnd: editor.selectionEnd,
+                    scrollTop: editor.scrollTop
+                };
+            }
+        });
+        
+        const syntaxButton = document.getElementById("syntaxButton");
+        const syntaxModal = document.getElementById("syntaxModal");
+        const applySyntaxButton = document.getElementById("applySyntaxButton");
+        const syntaxSelector = document.getElementById("syntaxSelector");
+
+        syntaxButton.addEventListener("click", function() {
+            syntaxModal.style.display = "block";
+        });
+
+        applySyntaxButton.addEventListener("click", function() {
+            const selectedSyntax = syntaxSelector.value;
+            editor.className = "editor " + selectedSyntax;
+            // Apply syntax highlighting for the selected syntax
+            hljs.highlightElement(editor);
+            syntaxModal.style.display = "none";
+        });
+
+        // Close the modal when the user clicks outside of it
+        window.addEventListener("click", function(event) {
+            if (event.target == syntaxModal) {
+                syntaxModal.style.display = "none";
+            }
+        });
+
+    </script>
+</body>
+</html>
